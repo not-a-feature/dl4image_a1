@@ -4,7 +4,7 @@ from collections import Counter
 import numpy as np
 from matplotlib import pyplot as plt
 from PIL import Image
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 
 
 data_root = "/home/jules/Bioinformatik/2.OSLO/Deep_Learning/dl4image_a1/mandatory1_data"
@@ -17,6 +17,31 @@ conf = {
     "n_val": 2000,
     # "batch_size": 8,
 }
+
+
+class Landmarks(Dataset):
+    """Landmarks dataset."""
+
+    def __init__(self, img_path, labels):
+        """
+        Args:
+            root_dir (string): Directory with all the images.
+        """
+        self.img_path = img_path
+        self.labels = labels
+
+    def __len__(self):
+        return len(self.img_path)
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        image = io.imread(self.img_path[idx])
+
+        sample = {"image": image, "class": self.labels[idx]}
+
+        return sample
 
 
 def get_splits(n_test=3000, n_val=2000):
@@ -110,45 +135,14 @@ def get_splits(n_test=3000, n_val=2000):
     return fn_train, fn_test, fn_val, label_train, label_test, label_val
 
 
-def load_image(path):
-    """Loads an image to a numpy array.
-
-    Parameters
-    ----------
-        path: str, path to image
-
-    Returns
-    -------
-        img: np.array, image
+def get_dataloaders():
     """
-
-    return np.asarray(Image.open(path))
-
-
-def load_data():
+    Returns 3 dataloaders.
     """
-    Loads image data and returns train, test and validation splits.
+    data_train, data_test, data_val, label_train, label_test, label_val = get_splits()
 
-    Parameters
-    ----------
-        None
+    dataloader_train = Landmarks(data_train, label_train)
+    dataloader_test = Landmarks(data_test, label_test)
+    dataloader_val = Landmarks(data_val, label_val)
 
-    Returns
-    ----------
-        data_train: list[np.array(n, n, 3)], list of images of train set.
-        data_test: list[np.array(n, n, 3)], list of images of test set.
-        data_val: list[np.array(n, n, 3)], list of images of val set.
-        label_train: list[str], list of labels of train set.
-        label_test: list[str], list of labels of test set.
-        label_val: list[str], list of labels of validation set
-    """
-
-    fn_train, fn_test, fn_val, label_train, label_test, label_val = get_splits(
-        n_test=conf["n_test"], n_val=conf["n_val"]
-    )
-
-    data_train = [load_image(fn) for fn in fn_train]
-    data_test = [load_image(fn) for fn in fn_test]
-    data_val = [load_image(fn) for fn in fn_val]
-
-    return data_train, data_test, data_val, label_train, label_test, label_val
+    return dataloader_train, dataloader_test, dataloader_val
