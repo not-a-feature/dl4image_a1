@@ -7,13 +7,15 @@ from PIL import Image
 from torch.utils.data import DataLoader, Dataset
 from config import dataloader_conf, classes
 from torch import is_tensor, from_numpy, permute, stack
+from torch import nn
+from torchvision import transforms
 from skimage import io
 
 
 class Landmarks(Dataset):
     """Landmarks dataset."""
 
-    def __init__(self, img_path, labels):
+    def __init__(self, img_path, labels, transform):
         """
         Args:
             root_dir (string): Directory with all the images.
@@ -21,6 +23,7 @@ class Landmarks(Dataset):
         """
         self.img_path = img_path
         self.labels = labels
+        self.transform = transform
 
     def __len__(self):
         return len(self.img_path)
@@ -42,13 +45,15 @@ class Landmarks(Dataset):
 
         # sample = {"image": image, "label": label}
 
+        if self.transform:
+            image = self.transform(image)
+
         return image, label
 
     def get_batch(self, batch_size, idx):
         batch = {"image": [], "label": []}
 
         for i in range(batch_size):
-            print("Getting image ", idx, i, batch_size)
             image, label = self.__getitem__(idx * batch_size + i)
             batch["image"].append(image)
             batch["label"].append(label)
@@ -149,14 +154,17 @@ def get_splits(n_test=3000, n_val=2000):
     return fn_train, fn_test, fn_val, label_train, label_test, label_val
 
 
+transform = nn.Sequential(transforms.Resize((150, 150)))
+
+
 def get_dataloaders():
     """
     Returns 3 dataloaders.
     """
     data_train, data_test, data_val, label_train, label_test, label_val = get_splits()
 
-    dataloader_train = Landmarks(data_train, label_train)
-    dataloader_test = Landmarks(data_test, label_test)
-    dataloader_val = Landmarks(data_val, label_val)
+    dataloader_train = Landmarks(data_train, label_train, transform)
+    dataloader_test = Landmarks(data_test, label_test, transform)
+    dataloader_val = Landmarks(data_val, label_val, transform)
 
     return dataloader_train, dataloader_test, dataloader_val

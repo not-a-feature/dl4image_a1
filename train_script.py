@@ -104,9 +104,7 @@ def trainLoop(dataLoader, lossFunction, model, hyperparameters, loadCheckpoint, 
     runningLoss = 0
     for i in range(hyperparameters["epochs"]):
         batch_idx_range = range(len(dataLoader) // params["batch_size"])
-        print((batch_idx_range))
         for batch_idx in batch_idx_range:
-            print(batch_idx)
             sample = dataLoader.get_batch(params["batch_size"], batch_idx)
 
             input_data, labels = sample["image"], sample["label"]
@@ -132,7 +130,7 @@ def trainLoop(dataLoader, lossFunction, model, hyperparameters, loadCheckpoint, 
             ########################################
 
             # save checkpoint at each end of epoch
-            saveCheckpoint(model, optimizer, pathOrigin + "/models/" + hyperparameters["modelName"])
+        saveCheckpoint(model, optimizer, pathOrigin + "/models/" + hyperparameters["modelName"])
 
     return
 
