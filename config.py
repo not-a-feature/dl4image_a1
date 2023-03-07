@@ -1,7 +1,7 @@
 classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
 
 dataloader_conf = {
-    "take_every_nth": 10,
+    "take_every_nth": 1,
     "random_seed": 12345678,
     "n_test": 3000,
     "n_val": 2000,
@@ -14,5 +14,5 @@ train_conf = {
     "modelName": "resnet18",
     "epochs": 20,
     "optimizer": "Adam",
-    "batch_size": 32,
+    "batch_size": 256,
 }
