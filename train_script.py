@@ -109,7 +109,7 @@ def trainLoop(dataLoader, lossFunction, model, hyperparameters, loadCheckpoint, 
             print(batch_idx)
             sample = dataLoader.get_batch(params["batch_size"], batch_idx)
 
-            # input_data, labels = sample["image"], sample["label"]
+            input_data, labels = sample["image"], sample["label"]
 
             input_data.to(device)
             labels.to(device)

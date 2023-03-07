@@ -40,20 +40,21 @@ class Landmarks(Dataset):
         label = from_numpy(label)
         # label = label[None, :]
 
-        sample = {"image": image, "label": label}
+        # sample = {"image": image, "label": label}
 
-        return sample
+        return image, label
 
     def get_batch(self, batch_size, idx):
-        batch = []
+        batch = {"image": [], "label": []}
 
         for i in range(batch_size):
             print("Getting image ", idx, i, batch_size)
-            batch.append(self.__getitem__(idx * batch_size + i))
+            image, label = self.__getitem__(idx * batch_size + i)
+            batch["image"].append(image)
+            batch["label"].append(label)
 
-        batch = from_numpy(np.asarray(batch))
-        batch = stack(batch)
-        print(batch)
+        batch["image"] = stack(batch["image"])
+        batch["label"] = stack(batch["label"])
         return batch
 
 
