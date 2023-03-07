@@ -60,7 +60,7 @@ def get_splits(n_test=3000, n_val=2000):
         fns,
         labels,
         test_size=p_test_val,
-        random_state=random_seed,
+        random_state=conf["random_seed"],
         shuffle=True,
     )
 
@@ -83,8 +83,8 @@ def get_splits(n_test=3000, n_val=2000):
     set_fn_test = set(fn_test)
     set_fn_val = set(fn_val)
 
-    assert set_fn_test.intersection(set_fn_train) == set()
-    assert set_fn_test.intersection(set_fn_val) == set()
+    assert set_fn_train.intersection(set_fn_test) == set()
+    assert set_fn_train.intersection(set_fn_val) == set()
     assert set_fn_test.intersection(set_fn_val) == set()
 
     # Check that length of data / label is equal
@@ -145,3 +145,6 @@ def load_data():
     data_val = [load_image(fn) for fn in fn_val]
 
     return data_train, data_test, data_val, label_train, label_test, label_val
+
+
+load_data()
