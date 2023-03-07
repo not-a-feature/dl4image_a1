@@ -5,18 +5,19 @@ import wandb
 import os
 
 # specify pathOrigin here
-#pathOrigin = "..."
+# pathOrigin = "..."
 
 # example model resnet, maybe add a layer to match our image sizes in the beginning
 model = models.resnet18(pretrained=True)
 device = "cpu"
-params = {"learningRate": 0.001,
-                   "weightDecay": 0.01,
-                   "modelName": "resnet18",
-                   "epochs": 20,
-                    "optimizer": "Adam"}
+params = {
+    "learningRate": 0.001,
+    "weightDecay": 0.01,
+    "modelName": "resnet18",
+    "epochs": 20,
+    "optimizer": "Adam",
+}
 criterion = torch.nn.CrossEntropyLoss()
-
 
 
 def saveCheckpoint(model, optimizer, filename):
@@ -27,9 +28,7 @@ def saveCheckpoint(model, optimizer, filename):
     optimizer: torch.optim.optimzer class
     filename: string
     """
-    checkpoint = {
-        'model': model.state_dict(),
-        'optimizer': optimizer.state_dict()}
+    checkpoint = {"model": model.state_dict(), "optimizer": optimizer.state_dict()}
     torch.save(checkpoint, filename)
     print("checkpoint saved")
     return
@@ -45,22 +44,21 @@ def loadCheckpoint(model, optimizer, path):
 
     """
     checkpoint = torch.load(path)
-    model.load_state_dict(checkpoint['model'])
-    optimizer.load_state_dict(checkpoint['optimizer'])
+    model.load_state_dict(checkpoint["model"])
+    optimizer.load_state_dict(checkpoint["optimizer"])
     print("checkpoint loaded")
     return
 
+
 ##### dataLoader
-
-
-
-
 
 
 #################
 
 
-def trainLoop(dataLoader, lossFunction, model, hyperparameters, optimizer, loadCheckpoint, WandB, pathOrigin):
+def trainLoop(
+    dataLoader, lossFunction, model, hyperparameters, optimizer, loadCheckpoint, WandB, pathOrigin
+):
     """
     Trains a deep learning model with a variant of gradient decent
 
@@ -85,21 +83,21 @@ def trainLoop(dataLoader, lossFunction, model, hyperparameters, optimizer, loadC
         wandb.init(
             # set the wandb project where this run will be logged
             project=hyperparameters["modelName"],
-
             # track hyperparameters and run metadata
             config={
                 "learning_rate": hyperparameters["learningRate"],
                 "architecture": hyperparameters["modelName"],
                 "epochs": hyperparameters["epochs"],
-            }
+            },
         )
 
     # optimizer
     if hyperparameters["optimizer"] == "Adam":
-        optimizer = torch.Adam(model.parameters(),
-                               lr = hyperparameters["learningRate"],
-                               weight_decay = hyperparameters["weightDecay"])
-
+        optimizer = torch.Adam(
+            model.parameters(),
+            lr=hyperparameters["learningRate"],
+            weight_decay=hyperparameters["weightDecay"],
+        )
 
     # load model
     if loadCheckpoint:
@@ -111,15 +109,15 @@ def trainLoop(dataLoader, lossFunction, model, hyperparameters, optimizer, loadC
     model.train()
     runningLoss = 0
     for i in range(hyperparameters["epochs"]):
-        for input, labels in dataLoader:
-            input.to(device)
+        for input_data, labels in dataLoader:
+            input_data.to(device)
             labels.to(device)
 
             # zero the parameter gradients
             optimizer.zero_grad()
 
             # calculate loss + backprop
-            pred = model(input)
+            pred = model(input_data)
             loss = lossFunction(pred, labels)
             loss.backward()
             optimizer.step()
@@ -130,15 +128,9 @@ def trainLoop(dataLoader, lossFunction, model, hyperparameters, optimizer, loadC
 
             ### implement early stopping here #####
 
-
-
             ########################################
 
             # save checkpoint at each end of epoch
             saveCheckpoint(model, optimizer, pathOrigin + "/models/" + hyperparameters["modelName"])
-            
+
     return
-
-
-
-
