@@ -5,18 +5,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
-
-
-data_root = "/home/jules/Bioinformatik/2.OSLO/Deep_Learning/dl4image_a1/mandatory1_data"
-classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
-
-conf = {
-    "take_every_nth": 10,
-    "random_seed": 12345678,
-    "n_test": 3000,
-    "n_val": 2000,
-    # "batch_size": 8,
-}
+from config import dataloader_conf, classes
+from torch import is_tensor, from_numpy, permute, stack
+from skimage import io
 
 
 class Landmarks(Dataset):
@@ -26,6 +17,7 @@ class Landmarks(Dataset):
         """
         Args:
             root_dir (string): Directory with all the images.
+            # todo fix
         """
         self.img_path = img_path
         self.labels = labels
@@ -34,14 +26,35 @@ class Landmarks(Dataset):
         return len(self.img_path)
 
     def __getitem__(self, idx):
-        if torch.is_tensor(idx):
+        if is_tensor(idx):
             idx = idx.tolist()
 
         image = io.imread(self.img_path[idx])
+        image = from_numpy(image)
+        image = permute(image, (2, 0, 1))
+        # image = image[None, :]
+        image = image.float()
 
-        sample = {"image": image, "class": self.labels[idx]}
+        label = np.zeros(len(classes))
+        label[self.labels[idx]] = 1
+        label = from_numpy(label)
+        # label = label[None, :]
+
+        sample = {"image": image, "label": label}
 
         return sample
+
+    def get_batch(self, batch_size, idx):
+        batch = []
+
+        for i in range(batch_size):
+            print("Getting image ", idx, i, batch_size)
+            batch.append(self.__getitem__(idx * batch_size + i))
+
+        batch = from_numpy(np.asarray(batch))
+        batch = stack(batch)
+        print(batch)
+        return batch
 
 
 def get_splits(n_test=3000, n_val=2000):
@@ -58,27 +71,27 @@ def get_splits(n_test=3000, n_val=2000):
         fn_train:, list[str], list of image-paths of train set.
         fn_test: list[str], list of image-paths of test set.
         fn_val: list[str], list of image-paths of validation set.
-        label_train: list[str], list of labels of train set.
-        label_test: list[str], list of labels of test set.
-        label_val: list[str], list of labels of validation set
+        label_train: list[int], list of labels of train set.
+        label_test: list[int], list of labels of test set.
+        label_val: list[int], list of labels of validation set
     """
     fns = []
     labels = []
 
-    for c in classes:
-        class_fn = os.listdir(os.path.join(data_root, c))
-        class_fn = [os.path.join(data_root, c, fn) for fn in class_fn]
+    for i, c in enumerate(classes):
+        class_fn = os.listdir(os.path.join(dataloader_conf["data_root"], c))
+        class_fn = [os.path.join(dataloader_conf["data_root"], c, fn) for fn in class_fn]
 
         class_size = len(class_fn)
 
         fns.extend(class_fn)
-        labels.extend([c] * class_size)
+        labels.extend([i] * class_size)
 
-    fns = fns[:: conf["take_every_nth"]]
-    labels = labels[:: conf["take_every_nth"]]
+    fns = fns[:: dataloader_conf["take_every_nth"]]
+    labels = labels[:: dataloader_conf["take_every_nth"]]
 
-    n_test = n_test // conf["take_every_nth"]
-    n_val = n_val // conf["take_every_nth"]
+    n_test = n_test // dataloader_conf["take_every_nth"]
+    n_val = n_val // dataloader_conf["take_every_nth"]
 
     total_size = len(fns)
 
@@ -92,7 +105,7 @@ def get_splits(n_test=3000, n_val=2000):
         fns,
         labels,
         test_size=p_test_val,
-        random_state=conf["random_seed"],
+        random_state=dataloader_conf["random_seed"],
         shuffle=True,
     )
 
@@ -106,7 +119,7 @@ def get_splits(n_test=3000, n_val=2000):
         fn_test_val,
         label_test_val,
         test_size=p_val,  # Important: we split the (test-val) set into test and val. ´
-        random_state=conf["random_seed"],
+        random_state=dataloader_conf["random_seed"],
         shuffle=True,
     )
 
@@ -126,7 +139,7 @@ def get_splits(n_test=3000, n_val=2000):
 
     pad = len(str(total_size))
 
-    print("Name    c   |", "N".rjust(pad), "| Composition")
+    print("Name        |", "N".rjust(pad), "| Composition")
     print("----------------------------------------------")
     print("Train Split |", str(len(fn_train)).rjust(pad), "|", Counter(label_train))
     print("Test Split  |", str(len(fn_test)).rjust(pad), "|", Counter(label_test))
