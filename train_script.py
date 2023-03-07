@@ -8,7 +8,7 @@ import os
 # pathOrigin = "..."
 
 # example model resnet, maybe add a layer to match our image sizes in the beginning
-model = models.resnet18(pretrained=True)
+model = models.resnet18(weights=ResNet18_Weights.DEFAULT)
 device = "cpu"
 params = {
     "learningRate": 0.001,
