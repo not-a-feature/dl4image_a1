@@ -11,6 +11,7 @@ data_root = "/home/jules/Bioinformatik/2.OSLO/Deep_Learning/dl4image_a1/mandator
 classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
 
 conf = {
+    "take_every_nth": 10,
     "random_seed": 12345678,
     "n_test": 3000,
     "n_val": 2000,
@@ -47,6 +48,12 @@ def get_splits(n_test=3000, n_val=2000):
 
         fns.extend(class_fn)
         labels.extend([c] * class_size)
+
+    fns = fns[:: conf["take_every_nth"]]
+    labels = labels[:: conf["take_every_nth"]]
+
+    n_test = n_test // conf["take_every_nth"]
+    n_val = n_val // conf["take_every_nth"]
 
     total_size = len(fns)
 
@@ -145,6 +152,3 @@ def load_data():
     data_val = [load_image(fn) for fn in fn_val]
 
     return data_train, data_test, data_val, label_train, label_test, label_val
-
-
-load_data()
