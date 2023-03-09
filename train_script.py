@@ -147,7 +147,7 @@ trainLoop(
     dataloader_dict["train"],
     lossFunction=criterion,
     model=model,
-    hyperparameters=params,
+    hyperparameters=train_conf,
     loadCheckpoint=False,
     WandB=False,
     pathOrigin=data_root,

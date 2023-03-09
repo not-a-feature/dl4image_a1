@@ -5,11 +5,13 @@ import numpy as np
 from matplotlib import pyplot as plt
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
-from config import dataloader_conf, classes, data_root, data_folder
+
 from torch import is_tensor, from_numpy, permute, stack
 from torch import nn
 from torchvision import transforms
 from skimage import io
+
+from config import *
 
 
 class Landmarks(Dataset):
