@@ -59,7 +59,7 @@ def loadCheckpoint(model, optimizer, path):
 #################
 
 
-def trainLoop(dataLoader, lossFunction, model, hyperparameters, loadCheckpoint, WandB, pathOrigin):
+def trainLoop(dataLoader, lossFunction, model, params, loadCheckpoint, WandB, pathOrigin):
     """
     Trains a deep learning model with a variant of gradient decent
 
@@ -68,7 +68,7 @@ def trainLoop(dataLoader, lossFunction, model, hyperparameters, loadCheckpoint, 
     dataLoader: torch dataLoader object
     lossFunction: torch.nn function
     model: torch.nn object
-    hyperparameters: dict
+    params: dict
     loadCheckpoint: boolean
     WandB: boolean
     pathOrigin: string
@@ -82,34 +82,34 @@ def trainLoop(dataLoader, lossFunction, model, hyperparameters, loadCheckpoint, 
     if WandB:
         wandb.init(
             # set the wandb project where this run will be logged
-            project=hyperparameters["modelName"],
-            # track hyperparameters and run metadata
+            project=params["modelName"],
+            # track params and run metadata
             config={
-                "learning_rate": hyperparameters["learningRate"],
-                "architecture": hyperparameters["modelName"],
-                "epochs": hyperparameters["epochs"],
+                "learning_rate": params["learningRate"],
+                "architecture": params["modelName"],
+                "epochs": params["epochs"],
             },
         )
 
     # optimizer
-    if hyperparameters["optimizer"] == "Adam":
+    if params["optimizer"] == "Adam":
         optimizer = torch.optim.Adam(
             model.parameters(),
-            lr=hyperparameters["learningRate"],
-            weight_decay=hyperparameters["weightDecay"],
+            lr=params["learningRate"],
+            weight_decay=params["weightDecay"],
         )
 
     # load model
     if loadCheckpoint:
         # get into folder
-        model_name = str(hyperparameters["modelName"])
+        model_name = str(params["modelName"])
         loadCheckpoint(model, optimizer, os.path.join(pathOrigin, "models", model_name))
 
     # start training
     train_count = 0
     model.train()
     runningLoss = 0
-    for i in range(hyperparameters["epochs"]):
+    for i in range(params["epochs"]):
         batch_idx_range = range(len(dataLoader) // params["batch_size"])
         for batch_idx in batch_idx_range:
             sample = dataLoader.get_batch(params["batch_size"], batch_idx)
@@ -137,7 +137,7 @@ def trainLoop(dataLoader, lossFunction, model, hyperparameters, loadCheckpoint, 
             ########################################
 
             # save checkpoint at each end of epoch
-        model_name = str(hyperparameters["modelName"])
+        model_name = str(params["modelName"])
         saveCheckpoint(model, optimizer, os.path.join(pathOrigin, "models", model_name))
 
     return
@@ -147,7 +147,7 @@ trainLoop(
     dataloader_dict["train"],
     lossFunction=criterion,
     model=model,
-    hyperparameters=train_conf,
+    params=train_conf,
     loadCheckpoint=False,
     WandB=False,
     pathOrigin=data_root,
