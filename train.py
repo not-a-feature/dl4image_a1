@@ -46,9 +46,9 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs):
 
             # Iterate over data.
             for dataloader in dataloaders[phase]:
-                batch_idx_range = range(len(dataLoader) // train_conf["batch_size"])
+                batch_idx_range = range(len(dataloader) // train_conf["batch_size"])
                 for batch_idx in batch_idx_range:
-                    sample = dataLoader.get_batch(params["batch_size"], batch_idx)
+                    sample = dataloader.get_batch(params["batch_size"], batch_idx)
                     inputs, labels = sample["image"], sample["label"]
 
                     inputs = inputs.to(device)
