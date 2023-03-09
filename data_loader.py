@@ -5,7 +5,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
-from config import dataloader_conf, classes
+from config import dataloader_conf, classes, data_root, data_folder
 from torch import is_tensor, from_numpy, permute, stack
 from torch import nn
 from torchvision import transforms
@@ -85,8 +85,8 @@ def get_splits(n_test=3000, n_val=2000):
     labels = []
 
     for i, c in enumerate(classes):
-        class_fn = os.listdir(os.path.join(dataloader_conf["data_root"], c))
-        class_fn = [os.path.join(dataloader_conf["data_root"], c, fn) for fn in class_fn]
+        class_fn = os.listdir(os.path.join(data_root, data_folder, c))
+        class_fn = [os.path.join(data_root, data_folder, c, fn) for fn in class_fn]
 
         class_size = len(class_fn)
 

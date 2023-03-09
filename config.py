@@ -1,11 +1,14 @@
 classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
 
+data_root = "/home/jules/Bioinformatik/2.OSLO/Deep_Learning/dl4image_a1"
+# data_root = "/itf-fi-ml/home/julesk/dl4image_a1"
+data_folder = "mandatory1_data"
+
 dataloader_conf = {
     "take_every_nth": 1,
     "random_seed": 12345678,
     "n_test": 3000,
     "n_val": 2000,
-    "data_root": "/home/jules/Bioinformatik/2.OSLO/Deep_Learning/dl4image_a1/mandatory1_data",
 }
 
 train_conf = {

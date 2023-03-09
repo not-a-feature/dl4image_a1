@@ -6,15 +6,17 @@ import os
 from data_loader import get_dataloaders
 
 from config import train_conf as params
-from config import classes
-
-# specify pathOrigin here
-pathOrigin = "/home/jules/Bioinformatik/2.OSLO/Deep_Learning/dl4image_a1"
+from config import classes, data_root
 
 # example model resnet, maybe add a layer to match our image sizes in the beginning
+device = "cuda:4"
+
 model = models.resnet18(weights="DEFAULT")
 model.fc = nn.Linear(512, len(classes))
 model = model.float()
+criterion = torch.nn.CrossEntropyLoss()
+
+model = model.to(device)
 
 
 def saveCheckpoint(model, optimizer, filename):
@@ -95,8 +97,8 @@ def trainLoop(dataLoader, lossFunction, model, hyperparameters, loadCheckpoint, 
     # load model
     if loadCheckpoint:
         # get into folder
-        os.chdir(pathOrigin + "/models")
-        loadCheckpoint(model, optimizer, pathOrigin + "/models/" + hyperparameters["modelName"])
+        mode_name = str(hyperparameters["modelName"])
+        loadCheckpoint(model, optimizer, os.path.join(pathOrigin, "models", model_name))
 
     # start training
     train_count = 0
@@ -109,8 +111,8 @@ def trainLoop(dataLoader, lossFunction, model, hyperparameters, loadCheckpoint, 
 
             input_data, labels = sample["image"], sample["label"]
 
-            input_data.to(device)
-            labels.to(device)
+            input_data = input_data.to(device)
+            labels = labels.to(device)
 
             # zero the parameter gradients
             optimizer.zero_grad()
@@ -121,7 +123,7 @@ def trainLoop(dataLoader, lossFunction, model, hyperparameters, loadCheckpoint, 
             loss.backward()
             optimizer.step()
 
-            runningLoss += loss.detach().cpu().item()
+            runningLoss += loss.item()
             train_count += 1
             print("Epoch: ", i, "current loss: ", runningLoss / train_count)
 
@@ -130,13 +132,11 @@ def trainLoop(dataLoader, lossFunction, model, hyperparameters, loadCheckpoint, 
             ########################################
 
             # save checkpoint at each end of epoch
-        saveCheckpoint(model, optimizer, pathOrigin + "/models/" + hyperparameters["modelName"])
+        mode_name = str(hyperparameters["modelName"])
+        saveCheckpoint(model, optimizer, os.path.join(pathOrigin, "models", model_name))
 
     return
 
-
-device = "cpu"
-criterion = torch.nn.CrossEntropyLoss()
 
 trainLoop(
     dataloader_train,
@@ -145,5 +145,5 @@ trainLoop(
     hyperparameters=params,
     loadCheckpoint=False,
     WandB=False,
-    pathOrigin=pathOrigin,
+    pathOrigin=data_root,
 )
