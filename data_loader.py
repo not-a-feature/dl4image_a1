@@ -167,4 +167,4 @@ def get_dataloaders():
     dataloader_test = Landmarks(data_test, label_test, transform)
     dataloader_val = Landmarks(data_val, label_val, transform)
 
-    return dataloader_train, dataloader_test, dataloader_val
+    return {"train": dataloader_train, "test": dataloader_test, "val": dataloader_val}

@@ -44,34 +44,39 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs):
             running_corrects = 0
 
             # Iterate over data.
-            for inputs, labels in dataloaders[phase]:
-                inputs = inputs.to(device)
-                labels = labels.to(device)
+            for dataloader in dataloaders[phase]:
+                batch_idx_range = range(len(dataLoader) // train_conf["batch_size"])
+                for batch_idx in batch_idx_range:
+                    sample = dataLoader.get_batch(params["batch_size"], batch_idx)
+                    inputs, labels = sample["image"], sample["label"]
 
-                # zero the parameter gradients
-                optimizer.zero_grad()
+                    inputs = inputs.to(device)
+                    labels = labels.to(device)
 
-                # forward
-                # track history if only in train
-                with torch.set_grad_enabled(phase == "train"):
-                    # Get model outputs and calculate loss
-                    # Special case for inception because in training it has an auxiliary output. In train
-                    #   mode we calculate the loss by summing the final output and the auxiliary output
-                    #   but in testing we only consider the final output.
+                    # zero the parameter gradients
+                    optimizer.zero_grad()
 
-                    outputs = model(inputs)
-                    loss = criterion(outputs, labels)
+                    # forward
+                    # track history if only in train
+                    with torch.set_grad_enabled(phase == "train"):
+                        # Get model outputs and calculate loss
+                        # Special case for inception because in training it has an auxiliary output. In train
+                        #   mode we calculate the loss by summing the final output and the auxiliary output
+                        #   but in testing we only consider the final output.
 
-                    _, preds = torch.max(outputs, 1)
+                        outputs = model(inputs)
+                        loss = criterion(outputs, labels)
 
-                    # backward + optimize only if in training phase
-                    if phase == "train":
-                        loss.backward()
-                        optimizer.step()
+                        _, preds = torch.max(outputs, 1)
 
-                # statistics
-                running_loss += loss.item() * inputs.size(0)
-                running_corrects += torch.sum(preds == labels.data)
+                        # backward + optimize only if in training phase
+                        if phase == "train":
+                            loss.backward()
+                            optimizer.step()
+
+                    # statistics
+                    running_loss += loss.item() * inputs.size(0)
+                    running_corrects += torch.sum(preds == labels.data)
 
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
             epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
@@ -145,7 +150,7 @@ else:
 
 # Observe that all parameters are being optimized
 
-if hyperparameters["optimizer"] == "Adam":
+if train_conf["optimizer"] == "Adam":
     optimizer_ft = torch.optim.Adam(
         params_to_update,
         lr=train_conf["learningRate"],
