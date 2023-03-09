@@ -5,22 +5,25 @@ import wandb
 import os
 from data_loader import get_dataloaders
 
-from config import train_conf as params
-from config import classes, data_root
+from config import *
 
 # example model resnet, maybe add a layer to match our image sizes in the beginning
-device = torch.device("cuda:4")
-# device = "cpu"
+device = torch.device(train_conf["device"])
 
 torch.backends.cudnn.enabled = True
 torch.backends.cudnn.benchmark = True
 
+# Adapt model to 6 class output
 model = models.resnet18(weights="DEFAULT")
 model.fc = nn.Linear(512, len(classes))
 model = model.float()
+model = model.to(device)
+
+# Set performance criterion
 criterion = torch.nn.CrossEntropyLoss()
 
-model = model.to(device)
+# Get Dataloaders
+dataloader_dict = get_dataloaders()
 
 
 def saveCheckpoint(model, optimizer, filename):
@@ -52,8 +55,6 @@ def loadCheckpoint(model, optimizer, path):
     print("checkpoint loaded")
     return
 
-
-dataloader_dict = get_dataloaders()
 
 #################
 
