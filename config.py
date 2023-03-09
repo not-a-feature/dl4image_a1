@@ -18,4 +18,5 @@ train_conf = {
     "epochs": 20,
     "optimizer": "Adam",
     "batch_size": 256,
+    "device": "cuda:4",
 }
