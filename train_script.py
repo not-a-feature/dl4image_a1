@@ -10,7 +10,7 @@ from config import classes, data_root
 
 # example model resnet, maybe add a layer to match our image sizes in the beginning
 device = "cuda:4"
-
+# device = "cpu"
 model = models.resnet18(weights="DEFAULT")
 model.fc = nn.Linear(512, len(classes))
 model = model.float()
@@ -97,7 +97,7 @@ def trainLoop(dataLoader, lossFunction, model, hyperparameters, loadCheckpoint, 
     # load model
     if loadCheckpoint:
         # get into folder
-        mode_name = str(hyperparameters["modelName"])
+        model_name = str(hyperparameters["modelName"])
         loadCheckpoint(model, optimizer, os.path.join(pathOrigin, "models", model_name))
 
     # start training
@@ -132,8 +132,8 @@ def trainLoop(dataLoader, lossFunction, model, hyperparameters, loadCheckpoint, 
             ########################################
 
             # save checkpoint at each end of epoch
-        mode_name = str(hyperparameters["modelName"])
-        saveCheckpoint(model, optimizer, os.path.join(pathOrigin, "models", model_name))
+            model_name = str(hyperparameters["modelName"])
+            saveCheckpoint(model, optimizer, os.path.join(pathOrigin, "models", model_name))
 
     return
 
