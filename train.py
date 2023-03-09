@@ -116,7 +116,7 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
 
 # Initialize the model for this run
 model_ft = initialize_model(
-    model_name,
+    train_conf["modelName"],
     len(classes),
     feature_extract,
     use_pretrained=True,
