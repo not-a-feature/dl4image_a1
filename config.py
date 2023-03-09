@@ -14,7 +14,7 @@ dataloader_conf = {
 train_conf = {
     "learningRate": 0.001,
     "weightDecay": 0.01,
-    "modelName": "resnet18",
+    "modelName": "resnet18_6class",
     "epochs": 20,
     "optimizer": "Adam",
     "batch_size": 256,

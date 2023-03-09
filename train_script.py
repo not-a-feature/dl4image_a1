@@ -9,8 +9,12 @@ from config import train_conf as params
 from config import classes, data_root
 
 # example model resnet, maybe add a layer to match our image sizes in the beginning
-device = "cuda:4"
+device = torch.device("cuda:4")
 # device = "cpu"
+
+torch.backends.cudnn.enabled = True
+torch.backends.cudnn.benchmark = True
+
 model = models.resnet18(weights="DEFAULT")
 model.fc = nn.Linear(512, len(classes))
 model = model.float()
