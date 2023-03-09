@@ -173,5 +173,5 @@ model_ft, hist = train_model(
     dataloaders_dict,
     criterion,
     optimizer_ft,
-    num_epochs=num_epochs,
+    num_epochs=train_conf["epochs"],
 )
