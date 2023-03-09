@@ -21,7 +21,6 @@ print("Torchvision Version: ", torchvision.__version__)
 feature_extract = False
 
 
-# %%
 def train_model(model, dataloaders, criterion, optimizer, num_epochs):
     since = time.time()
 
@@ -86,8 +85,6 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs):
             if phase == "val":
                 val_acc_history.append(epoch_acc)
 
-        print()
-
     time_elapsed = time.time() - since
     print("Training complete in {:.0f}m {:.0f}s".format(time_elapsed // 60, time_elapsed % 60))
     print("Best val Acc: {:4f}".format(best_acc))
@@ -113,14 +110,16 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
     set_parameter_requires_grad(model_ft, feature_extract)
     num_ftrs = model_ft.fc.in_features
     model_ft.fc = nn.Linear(num_ftrs, num_classes)
-    input_size = 150
 
-    return model_ft, input_size
+    return model_ft
 
 
 # Initialize the model for this run
-model_ft, input_size = initialize_model(
-    model_name, num_classes, feature_extract, use_pretrained=True
+model_ft = initialize_model(
+    model_name,
+    len(classes),
+    feature_extract,
+    use_pretrained=True,
 )
 
 
@@ -145,7 +144,6 @@ else:
             print("\t", name)
 
 # Observe that all parameters are being optimized
-optimizer_ft = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
 
 if hyperparameters["optimizer"] == "Adam":
     optimizer_ft = torch.optim.Adam(
@@ -153,6 +151,13 @@ if hyperparameters["optimizer"] == "Adam":
         lr=train_conf["learningRate"],
         weight_decay=train_conf["weightDecay"],
     )
+else:
+    optimizer_ft = torch.optim.SGD(
+        params_to_update,
+        lr=train_conf["learningRate"],
+        momentum=0.9,
+    )
+
 
 # Setup the loss fxn
 criterion = nn.CrossEntropyLoss()

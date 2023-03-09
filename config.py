@@ -19,4 +19,5 @@ train_conf = {
     "optimizer": "Adam",
     "batch_size": 256,
     "device": "cuda:4",
+    "input_size": 150,
 }
