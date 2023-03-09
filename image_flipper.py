@@ -36,7 +36,7 @@ def flip_image(image_path, flip_direction):
 
 
 for Class in classes:
-    directory = os.join(data_root, data_folder)
+    directory = os.path.join(data_root, data_folder)
     # Loop over every file in the directory
     for filename in os.listdir(directory):
         # Check if the file is an image
