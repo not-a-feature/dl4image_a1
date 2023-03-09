@@ -53,7 +53,7 @@ def loadCheckpoint(model, optimizer, path):
     return
 
 
-dataloader_train, dataloader_test, dataloader_val = get_dataloaders()
+dataloader_dict = get_dataloaders()
 
 #################
 
@@ -136,14 +136,14 @@ def trainLoop(dataLoader, lossFunction, model, hyperparameters, loadCheckpoint, 
             ########################################
 
             # save checkpoint at each end of epoch
-            model_name = str(hyperparameters["modelName"])
-            saveCheckpoint(model, optimizer, os.path.join(pathOrigin, "models", model_name))
+        model_name = str(hyperparameters["modelName"])
+        saveCheckpoint(model, optimizer, os.path.join(pathOrigin, "models", model_name))
 
     return
 
 
 trainLoop(
-    dataloader_train,
+    dataloader_dict["train"],
     lossFunction=criterion,
     model=model,
     hyperparameters=params,

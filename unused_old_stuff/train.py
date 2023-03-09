@@ -22,6 +22,10 @@ print("Torchvision Version: ", torchvision.__version__)
 feature_extract = False
 
 
+torch.backends.cudnn.enabled = True
+torch.backends.cudnn.benchmark = True
+
+
 def train_model(model, dataloaders, criterion, optimizer, num_epochs):
     since = time.time()
 
@@ -76,6 +80,8 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs):
                             optimizer.step()
 
                     # statistics
+                    loss = loss.detach().cpu()
+
                     running_loss += loss.item() * inputs.size(0)
                     running_corrects += torch.sum(preds == labels.data)
 

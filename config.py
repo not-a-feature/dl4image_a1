@@ -5,7 +5,7 @@ data_root = "/itf-fi-ml/home/julesk/dl4image_a1"
 data_folder = "mandatory1_data"
 
 dataloader_conf = {
-    "take_every_nth": 100,
+    "take_every_nth": 10,
     "random_seed": 12345678,
     "n_test": 3000,
     "n_val": 2000,
