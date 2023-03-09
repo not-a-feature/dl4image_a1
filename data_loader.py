@@ -37,15 +37,11 @@ class Landmarks(Dataset):
         image = io.imread(self.img_path[idx])
         image = from_numpy(image)
         image = permute(image, (2, 0, 1))
-        # image = image[None, :]
         image = image.float()
 
         label = np.zeros(len(classes))
         label[self.labels[idx]] = 1
         label = from_numpy(label)
-        # label = label[None, :]
-
-        # sample = {"image": image, "label": label}
 
         if self.transform:
             image = self.transform(image)

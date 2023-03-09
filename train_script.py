@@ -115,7 +115,7 @@ def trainLoop(dataLoader, lossFunction, model, params, loadCheckpoint, WandB, pa
             sample = dataLoader.get_batch(params["batch_size"], batch_idx)
 
             input_data, labels = sample["image"], sample["label"]
-
+            input_data = torch.nn.functional.normalize(input_data)  # normalize image
             input_data = input_data.to(device)
             labels = labels.to(device)
 
