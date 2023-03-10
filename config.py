@@ -1,6 +1,6 @@
 classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
 
-data_root = "/home/jules/Bioinformatik/2.OSLO/Deep_Learning/dl4image_a1"
+data_root = "/home/user3574/PycharmProjects/dl4image_a1"
 # data_root = "/itf-fi-ml/home/julesk/dl4image_a1"
 data_folder = "mandatory1_data"
 
@@ -18,6 +18,6 @@ train_conf = {
     "epochs": 20,
     "optimizer": "Adam",
     "batch_size": 256,
-    "device": "cuda:4",
+    "device": "cuda:0",
     "input_size": 150,
 }
