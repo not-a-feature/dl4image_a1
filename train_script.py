@@ -102,7 +102,13 @@ def getLayerName(name):
         plt.plot(range(0, len(norms)), norms, 'xb-')
         plt.savefig(os.path.join(data_root, name + '.jpg'))
 
-        json_data[name] = {"avg_nonpositive": output_nonpositive_avg, "avg": output_mean_tensor, "cov": covariance, "eigvals": w}
+        # JSON
+        json_data[name] = {"avg_nonpositive": output_nonpositive_avg.to('cpu').detach().numpy().tolist(),
+                           "avg": output_mean_tensor.to('cpu').detach().numpy().tolist(),
+                           "eigvals": w.to('cpu').detach().numpy().tolist()}
+        json_object = json.dumps(json_data, indent=4)
+        with open("statistics.json", "w") as outfile:
+            outfile.write(json_object)
     return statisticHook
 
 
@@ -223,6 +229,10 @@ def trainLoop(dataLoader, lossFunction, model, params, loadCheckpoint, WandB, pa
     return
 
 
+modules = ['conv1', 'layer1.0.conv1', 'layer1.1.conv1', 'layer2.0.conv1']
+computeStatistics(model, dataloader_dict["train"], statistic_idx, modules)
+
+
 trainLoop(
     dataloader_dict["train"],
     lossFunction=criterion,
@@ -232,7 +242,3 @@ trainLoop(
     WandB=False,
     pathOrigin=data_root,
 )
-
-modules = ['conv1', 'layer1.0.conv1', 'layer1.1.conv1', 'layer2.0.conv1']
-computeStatistics(model, dataloader_dict["train"], statistic_idx, modules)
-
