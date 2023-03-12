@@ -22,7 +22,7 @@ model = model.to(device)
 # Set performance criterion
 criterion = torch.nn.CrossEntropyLoss()
 
-# Get Dataloaders
+# Get dataloaders
 dataloader_dict = get_dataloaders()
 
 
@@ -59,13 +59,13 @@ def loadCheckpoint(model, optimizer, path):
 #################
 
 
-def trainLoop(dataLoader, lossFunction, model, params, loadCheckpoint, WandB, pathOrigin):
+def trainLoop(dataloader, lossFunction, model, params, loadCheckpoint, WandB, pathOrigin):
     """
     Trains a deep learning model with a variant of gradient decent
 
     Parameters
     ----------
-    dataLoader: torch dataLoader object
+    dataloader: torch dataloader object
     lossFunction: torch.nn function
     model: torch.nn object
     params: dict
@@ -82,11 +82,11 @@ def trainLoop(dataLoader, lossFunction, model, params, loadCheckpoint, WandB, pa
     if WandB:
         wandb.init(
             # set the wandb project where this run will be logged
-            project=params["modelName"],
+            project=params["model_name"],
             # track params and run metadata
             config={
-                "learning_rate": params["learningRate"],
-                "architecture": params["modelName"],
+                "learning_rate": params["learning_rate"],
+                "architecture": params["model_name"],
                 "epochs": params["epochs"],
             },
         )
@@ -95,14 +95,14 @@ def trainLoop(dataLoader, lossFunction, model, params, loadCheckpoint, WandB, pa
     if params["optimizer"] == "Adam":
         optimizer = torch.optim.Adam(
             model.parameters(),
-            lr=params["learningRate"],
-            weight_decay=params["weightDecay"],
+            lr=params["learning_rate"],
+            weight_decay=params["weight_decay"],
         )
 
     # load model
     if loadCheckpoint:
         # get into folder
-        model_name = str(params["modelName"])
+        model_name = str(params["model_name"])
         loadCheckpoint(model, optimizer, os.path.join(pathOrigin, "models", model_name))
 
     # start training
@@ -110,12 +110,9 @@ def trainLoop(dataLoader, lossFunction, model, params, loadCheckpoint, WandB, pa
     model.train()
     runningLoss = 0
     for i in range(params["epochs"]):
-        batch_idx_range = range(len(dataLoader) // params["batch_size"])
-        for batch_idx in batch_idx_range:
-            sample = dataLoader.get_batch(params["batch_size"], batch_idx)
-
-            input_data, labels = sample["image"], sample["label"]
-            input_data = torch.nn.functional.normalize(input_data)  # normalize image
+        for input_data, labels in dataloader:
+            if train_conf["normalize_images"]:
+                input_data = torch.nn.functional.normalize(input_data)  # normalize image
             input_data = input_data.to(device)
             labels = labels.to(device)
 
@@ -137,7 +134,7 @@ def trainLoop(dataLoader, lossFunction, model, params, loadCheckpoint, WandB, pa
             ########################################
 
             # save checkpoint at each end of epoch
-        model_name = str(params["modelName"])
+        model_name = str(params["model_name"])
         saveCheckpoint(model, optimizer, os.path.join(pathOrigin, "models", model_name))
 
     return

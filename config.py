@@ -9,15 +9,19 @@ dataloader_conf = {
     "random_seed": 12345678,
     "n_test": 3000,
     "n_val": 2000,
+    "included_flipped": True,
+    "num_workers": 4,
+    "batch_size": 8,
 }
 
 train_conf = {
-    "learningRate": 0.001,
-    "weightDecay": 0.01,
-    "modelName": "resnet18_6class",
+    "model_rame": "resnet18_6class",
+    "learning_rate": 0.001,
+    "weight_decay": 0.01,
     "epochs": 20,
+    "normalize_images": True,
     "optimizer": "Adam",
-    "batch_size": 256,
-    "device": "cuda:4",
+    # "device": "cuda:4",
+    "device": "cpu",
     "input_size": 150,
 }

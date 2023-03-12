@@ -6,9 +6,9 @@ from matplotlib import pyplot as plt
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
 
-from torch import is_tensor, from_numpy, permute, stack
-from torch import nn
+from torch import is_tensor, from_numpy, permute, stack, nn
 from torchvision import transforms
+
 from skimage import io
 
 from config import *
@@ -17,7 +17,7 @@ from config import *
 class Landmarks(Dataset):
     """Landmarks dataset."""
 
-    def __init__(self, img_path, labels, transform):
+    def __init__(self, img_path, labels, transform=False):
         """
         Args:
             root_dir (string): Directory with all the images.
@@ -31,6 +31,18 @@ class Landmarks(Dataset):
         return len(self.img_path)
 
     def __getitem__(self, idx):
+        """
+        batch = {"image": [], "label": []}
+
+        for i in range(batch_size):
+            image, label = self.__getitem__(idx * batch_size + i)
+            batch["image"].append(image)
+            batch["label"].append(label)
+
+        batch["image"] = stack(batch["image"])
+        batch["label"] = stack(batch["label"])
+        return batch
+        """
         if is_tensor(idx):
             idx = idx.tolist()
 
@@ -48,20 +60,8 @@ class Landmarks(Dataset):
 
         return image, label
 
-    def get_batch(self, batch_size, idx):
-        batch = {"image": [], "label": []}
 
-        for i in range(batch_size):
-            image, label = self.__getitem__(idx * batch_size + i)
-            batch["image"].append(image)
-            batch["label"].append(label)
-
-        batch["image"] = stack(batch["image"])
-        batch["label"] = stack(batch["label"])
-        return batch
-
-
-def get_splits(n_test=3000, n_val=2000):
+def get_splits(n_test=3000, n_val=2000, include_augmented=True):
     """
     Gets all file-names and splits them into train, test and val sets.
 
@@ -78,12 +78,15 @@ def get_splits(n_test=3000, n_val=2000):
         label_train: list[int], list of labels of train set.
         label_test: list[int], list of labels of test set.
         label_val: list[int], list of labels of validation set
+        include_augmented: bool, include flipped images.
     """
     fns = []
     labels = []
 
     for i, c in enumerate(classes):
         class_fn = os.listdir(os.path.join(data_root, data_folder, c))
+
+        class_fn = [fn for fn in class_fn if include_augmented or "flipped" not in fn]
         class_fn = [os.path.join(data_root, data_folder, c, fn) for fn in class_fn]
 
         class_size = len(class_fn)
@@ -152,17 +155,36 @@ def get_splits(n_test=3000, n_val=2000):
     return fn_train, fn_test, fn_val, label_train, label_test, label_val
 
 
-transform = nn.Sequential(transforms.Resize((150, 150)))
-
-
 def get_dataloaders():
     """
     Returns 3 dataloaders.
     """
-    data_train, data_test, data_val, label_train, label_test, label_val = get_splits()
+    splits = get_splits(
+        dataloader_conf["n_test"],
+        dataloader_conf["n_val"],
+        dataloader_conf["included_flipped"],
+    )
+    data_train, data_test, data_val, label_train, label_test, label_val = splits
 
-    dataloader_train = Landmarks(data_train, label_train, transform)
-    dataloader_test = Landmarks(data_test, label_test, transform)
-    dataloader_val = Landmarks(data_val, label_val, transform)
+    transform = nn.Sequential(transforms.Resize((150, 150)))
 
+    landmarks_train = Landmarks(data_train, label_train, transform)
+    landmarks_test = Landmarks(data_test, label_test, transform)
+    landmarks_val = Landmarks(data_val, label_val, transform)
+
+    dataloader_train = DataLoader(
+        landmarks_train,
+        batch_size=dataloader_conf["batch_size"],
+        num_workers=dataloader_conf["num_workers"],
+    )
+    dataloader_test = DataLoader(
+        landmarks_test,
+        batch_size=dataloader_conf["batch_size"],
+        num_workers=dataloader_conf["num_workers"],
+    )
+    dataloader_val = DataLoader(
+        landmarks_val,
+        batch_size=dataloader_conf["batch_size"],
+        num_workers=dataloader_conf["num_workers"],
+    )
     return {"train": dataloader_train, "test": dataloader_test, "val": dataloader_val}
