@@ -11,7 +11,7 @@ dataloader_conf = {
     "n_val": 2000,
     "included_flipped": True,
     "num_workers": 4,
-    "batch_size": 512,
+    "batch_size": 256,
 }
 
 train_conf = {
