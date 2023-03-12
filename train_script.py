@@ -32,8 +32,8 @@ criterion = torch.nn.CrossEntropyLoss()
 dataloader_dict = get_dataloaders()
 
 # Predefined indices of specific images to test
-statistic_idx = sample(range(len(dataloader_dict["train"])), 200)
-json_data = {}
+# statistic_idx = sample(range(len(dataloader_dict["train"])), 200)
+# json_data = {}
 
 
 def get_module_by_name(module, access_string):
