@@ -15,7 +15,7 @@ dataloader_conf = {
 }
 
 train_conf = {
-    "model_rame": "resnet18_6class",
+    "model_name": "resnet18_6class",
     "learning_rate": 0.001,
     "weight_decay": 0.01,
     "epochs": 20,
