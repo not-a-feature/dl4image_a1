@@ -231,8 +231,8 @@ def trainLoop(dataloader, lossFunction, model, params, loadCheckpoint, WandB, pa
     return
 
 
-modules = ["conv1", "layer1.0.conv1", "layer1.1.conv1", "layer2.0.conv1"]
-computeStatistics(model, dataloader_dict["train"], statistic_idx, modules)
+# modules = ["conv1", "layer1.0.conv1", "layer1.1.conv1", "layer2.0.conv1"]
+# computeStatistics(model, dataloader_dict["train"], statistic_idx, modules)
 
 
 trainLoop(
