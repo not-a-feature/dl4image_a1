@@ -61,7 +61,7 @@ class Landmarks(Dataset):
         return image, label
 
 
-def get_splits(n_test=3000, n_val=2000, include_augmented=True):
+def get_splits(n_test=3000, n_val=2000, num_hook=200, include_augmented=True):
     """
     Gets all file-names and splits them into train, test and val sets.
 
@@ -69,6 +69,8 @@ def get_splits(n_test=3000, n_val=2000, include_augmented=True):
     ----------
         n_test: int, number of images to include in the test set.
         n_val: int, number of images to include in the validation set.
+        num_hook: int, number of images to use for the hook.
+        include_augmented: bool, include flipped images.
 
     Returns
     ----------
@@ -78,7 +80,6 @@ def get_splits(n_test=3000, n_val=2000, include_augmented=True):
         label_train: list[int], list of labels of train set.
         label_test: list[int], list of labels of test set.
         label_val: list[int], list of labels of validation set
-        include_augmented: bool, include flipped images.
     """
     fns = []
     labels = []
@@ -101,6 +102,10 @@ def get_splits(n_test=3000, n_val=2000, include_augmented=True):
     n_val = n_val // dataloader_conf["take_every_nth"]
 
     total_size = len(fns)
+
+    # Hook
+    fn_hook = fns[:: round(total_size / num_hook)]
+    label_hook = labels[:: round(total_size / num_hook)]
 
     if total_size <= (n_test + n_val):
         raise RuntimeError("Test / Val set is too large.")
@@ -149,10 +154,22 @@ def get_splits(n_test=3000, n_val=2000, include_augmented=True):
     print("Name        |", "N".rjust(pad), "| Composition")
     print("----------------------------------------------")
     print("Train Split |", str(len(fn_train)).rjust(pad), "|", Counter(label_train))
-    print("Test Split  |", str(len(fn_test)).rjust(pad), "|", Counter(label_test))
-    print("Val Split   |", str(len(fn_val)).rjust(pad), "|", Counter(label_val))
+    print("Test  Split |", str(len(fn_test)).rjust(pad), "|", Counter(label_test))
+    print("Val   Split |", str(len(fn_val)).rjust(pad), "|", Counter(label_val))
+    print("Hook  Split |", str(len(fn_hook)).rjust(pad), "|", Counter(label_hook))
 
-    return fn_train, fn_test, fn_val, label_train, label_test, label_val
+    out = {
+        "fn_train": fn_train,
+        "fn_test": fn_test,
+        "fn_val": fn_val,
+        "fn_hook": fn_hook,
+        "label_train": label_train,
+        "label_test": label_test,
+        "label_val": label_val,
+        "label_hook": label_hook,
+    }
+
+    return out
 
 
 def get_dataloaders():
@@ -162,15 +179,16 @@ def get_dataloaders():
     splits = get_splits(
         dataloader_conf["n_test"],
         dataloader_conf["n_val"],
+        dataloader_conf["num_hook"],
         dataloader_conf["included_flipped"],
     )
-    data_train, data_test, data_val, label_train, label_test, label_val = splits
 
     transform = nn.Sequential(transforms.Resize((150, 150)))
 
-    landmarks_train = Landmarks(data_train, label_train, transform)
-    landmarks_test = Landmarks(data_test, label_test, transform)
-    landmarks_val = Landmarks(data_val, label_val, transform)
+    landmarks_train = Landmarks(splits["fn_train"], splits["label_train"], transform)
+    landmarks_test = Landmarks(splits["fn_test"], splits["label_test"], transform)
+    landmarks_val = Landmarks(splits["fn_val"], splits["label_val"], transform)
+    landmarks_hook = Landmarks(splits["fn_hook"], splits["label_hook"], transform)
 
     dataloader_train = DataLoader(
         landmarks_train,
@@ -187,4 +205,17 @@ def get_dataloaders():
         batch_size=dataloader_conf["batch_size"],
         num_workers=dataloader_conf["num_workers"],
     )
-    return {"train": dataloader_train, "test": dataloader_test, "val": dataloader_val}
+
+    dataloader_hook = DataLoader(
+        landmarks_hook,
+        batch_size=1,
+        num_workers=1,
+    )
+
+    out = {
+        "train": dataloader_train,
+        "test": dataloader_test,
+        "val": dataloader_val,
+        "hook": dataloader_hook,
+    }
+    return out

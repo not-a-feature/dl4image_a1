@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 from data_loader import get_dataloaders
 from random import sample
 from functools import reduce
-from torch import stack
 
 from config import *
 
@@ -31,9 +30,7 @@ criterion = torch.nn.CrossEntropyLoss()
 # Get dataloaders
 dataloader_dict = get_dataloaders()
 
-# Predefined indices of specific images to test
-# statistic_idx = sample(range(len(dataloader_dict["train"])), 200)
-# json_data = {}
+json_data = {}
 
 
 def get_module_by_name(module, access_string):
@@ -41,7 +38,7 @@ def get_module_by_name(module, access_string):
     return reduce(getattr, names, module)
 
 
-def computeStatistics(model, dataloader, indices, modules):
+def computeStatistics(model, dataloader, modules):
     # Register hooks
     for nam, mod in model.named_modules():
         print(nam)
@@ -51,22 +48,22 @@ def computeStatistics(model, dataloader, indices, modules):
 
     # Create custom batch
     batch = {"image": [], "label": []}
-    for idx in indices:
-        image, label = dataloader[idx]
+    for image, label in dataloader:
         batch["image"].append(image)
         batch["label"].append(label)
 
-    batch["image"] = stack(batch["image"])
-    batch["label"] = stack(batch["label"])
-
+    batch["image"] = torch.stack(batch["image"])
+    batch["image"] = torch.squeeze(batch["image"])
     batch["image"] = batch["image"].to(device)
     model(batch["image"])
 
 
 def getLayerName(name):
     # Layer shape is CONV so it should be B, C, H, W
-    def statisticHook(model, input, output):
-        input = input[0]
+    def statisticHook(model, input_data, output):
+        input_data = input_data[0]
+        # Do we need this?
+
         output_shape = list(output.shape)
 
         # Select every axis except the first one that includes batches
@@ -95,7 +92,8 @@ def getLayerName(name):
         covariance = torch.divide(covariance, 200)
 
         # Calculate eigenvalues
-        w, lamb = torch.eig(covariance, eigenvectors=True)
+        w, lamb = torch.linalg.eig(covariance)
+        ## Complex sort does not work.
         w, indices = torch.sort(w, dim=0, descending=True)  # Complex sort
 
         # Plot norm of eigenvalues
@@ -230,8 +228,8 @@ def trainLoop(dataloader, lossFunction, model, loadCheckpoint, WandB, pathOrigin
     return
 
 
-# modules = ["conv1", "layer1.0.conv1", "layer1.1.conv1", "layer2.0.conv1"]
-# computeStatistics(model, dataloader_dict["train"], statistic_idx, modules)
+modules = ["conv1", "layer1.0.conv1", "layer1.1.conv1", "layer2.0.conv1"]
+computeStatistics(model, dataloader_dict["hook"], modules)
 
 
 trainLoop(
